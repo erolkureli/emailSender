@@ -7,6 +7,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class MailServiceImpl implements IMailService {
 	@Autowired
 	Configuration fmConfiguration;
 
-	public void sendEmail(Mail mail) {
+	public Mail sendEmail(Mail mail) {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		try {
@@ -42,10 +43,20 @@ public class MailServiceImpl implements IMailService {
 			mail.setHtmlBody(geContentFromTemplate(model));
 			mimeMessageHelper.setText(mail.getHtmlBody(), true);
 
+			mail.getAttachments().stream().forEach((f) -> {
+				FileSystemResource file = new FileSystemResource(f);
+				try {
+					mimeMessageHelper.addAttachment(file.getFilename(), file);
+				} catch (MessagingException e) {
+				}
+			});
+
 			mailSender.send(mimeMessageHelper.getMimeMessage());
 		} catch (MessagingException e) {
 			e.printStackTrace();
 		}
+
+		return mail;
 	}
 
 	public String geContentFromTemplate(Map<String, Object> model) {
@@ -53,10 +64,9 @@ public class MailServiceImpl implements IMailService {
 
 		try {
 			Template t = fmConfiguration.getTemplate("email-template.txt");
-			content.append(FreeMarkerTemplateUtils
-					.processTemplateIntoString(t, model));
+			content.append(FreeMarkerTemplateUtils.processTemplateIntoString(t, model));
 		} catch (Exception e) {
-			
+
 		}
 		return content.toString();
 	}

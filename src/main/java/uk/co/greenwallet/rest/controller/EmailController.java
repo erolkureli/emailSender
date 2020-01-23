@@ -26,6 +26,7 @@ public class EmailController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public void send(@RequestBody Mail mail) throws MessagingException, IOException, TemplateException {
-		emailSender.sendEmail(mail);
+		Mail sentMail = emailSender.sendEmail(mail);
+		
 	}
 }
