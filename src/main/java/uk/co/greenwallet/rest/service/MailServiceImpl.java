@@ -54,7 +54,7 @@ public class MailServiceImpl implements IMailService {
 			
 			mailSender.send(mimeMessageHelper.getMimeMessage());
 		} catch (MessagingException e) {
-			e.printStackTrace();
+		
 		}
 
 		return mail;

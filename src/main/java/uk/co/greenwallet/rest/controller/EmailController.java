@@ -32,7 +32,7 @@ public class EmailController {
 	public void send(@RequestBody Mail mail) throws MessagingException, IOException, TemplateException {
 		Mail sentMail = emailSender.sendEmail(mail);
 		
-	//	internalMailService.persist
+		internalMailService.persist(sentMail);
 		
 	}
 }
