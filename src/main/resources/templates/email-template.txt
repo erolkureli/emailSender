@@ -3,10 +3,24 @@
 <head></head>
  
 <body>
+    <table>
+    <tr>
+    <td>
+      <#list pictures as picture>
+      <img src=${picture.image} alt="Image Not Found" style="display: block;" />
+      </#list>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
     <p>Dear ${to}</p>
     <p>Email from Green Wallet</b></p>
     <p>Thanks</p>
     <p>${from}</p>
+    </td>
+    </tr>
+    </table>
 </body>
  
 </html>
