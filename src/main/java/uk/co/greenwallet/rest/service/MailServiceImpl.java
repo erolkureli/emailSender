@@ -1,11 +1,13 @@
 package uk.co.greenwallet.rest.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,10 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import uk.co.greenwallet.model.Mail;
-import uk.co.greenwallet.model.Picture;
+import uk.co.greenwallet.model.Image;
+import uk.co.greenwallet.model.InternalEmail;
+import uk.co.greenwallet.util.FileProducer;
+import uk.co.greenwallet.util.UuidConverter;
 
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
@@ -28,36 +32,48 @@ public class MailServiceImpl implements IMailService {
 
 	@Autowired
 	Configuration fmConfiguration;
-	
+
 	@Value("${spring.mail.template}")
 	private String templateFileName;
 
-	public Mail sendEmail(Mail mail) {
+	public void sendEmail(InternalEmail mail) throws Exception {
 		MimeMessage mimeMessage = mailSender.createMimeMessage();
 
 		try {
 			Map<String, Object> model = new HashMap<String, Object>();
 			model.put("to", mail.getTo());
 			model.put("from", mail.getFrom());
-			
-			List<Picture> pictures = new ArrayList<Picture>();
-			mail.getAttachments().stream().forEach((f) -> {Picture p = new Picture(); p.setImage(f); pictures.add(p);});
-			model.put("pictures", pictures);
-			
+			model.put("body", mail.getHtmlBody());
+
+			List<Image> images = new ArrayList<Image>();
+			mail.getAttachments().stream().forEach((attachment) -> {
+				try {
+					File file = new File(attachment + ".jpg");
+					byte[] imgAsByteArray = UuidConverter.getByteArrayFormUuid(attachment);
+
+					OutputStream os = new FileOutputStream(file);
+					os.write(imgAsByteArray);
+
+					FileProducer.printContent(file);
+					os.close();
+					images.add(new Image(file.getAbsolutePath()));
+				} catch (Exception e) {
+				}
+			});
+			model.put("images", images);
+
 			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
 
 			mimeMessageHelper.setSubject(mail.getSubject());
 			mimeMessageHelper.setFrom(mail.getFrom());
 			mimeMessageHelper.setTo(mail.getTo());
-			mail.setHtmlBody(geContentFromTemplate(model));
-			mimeMessageHelper.setText(mail.getHtmlBody(), true);
-			
-			mailSender.send(mimeMessageHelper.getMimeMessage());
-		} catch (MessagingException e) {
-		
-		}
+			String createdHtmlBodyByTemplate = geContentFromTemplate(model);
+			mimeMessageHelper.setText(createdHtmlBodyByTemplate, true);
 
-		return mail;
+			mailSender.send(mimeMessageHelper.getMimeMessage());
+		} catch (Exception e) {
+
+		}
 	}
 
 	public String geContentFromTemplate(Map<String, Object> model) {

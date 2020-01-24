@@ -1,7 +1,7 @@
 package uk.co.greenwallet.rest.service;
 
-import uk.co.greenwallet.model.Mail;
+import uk.co.greenwallet.model.InternalEmail;
 
 public interface IMailService {
-	public Mail sendEmail(Mail mail);
+	public void sendEmail(InternalEmail mail) throws Exception;
 }
