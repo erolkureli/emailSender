@@ -50,19 +50,27 @@ public class MailServiceImpl implements IMailService {
 			List<Image> images = new ArrayList<Image>();
 			mail.getAttachments().stream().forEach((attachmentId) -> {
 
-				try {
-					FileInfo fileInfo = repository.findById(attachmentId).get();
-					byte [] byte_array = fileInfo.getData();
-					ByteArrayInputStream input_stream= new ByteArrayInputStream(byte_array);
-					BufferedImage final_buffered_image = ImageIO.read(input_stream);
-					File attachedFile = new File(attachmentId + ".jpg");
-					ImageIO.write(final_buffered_image , "jpg", attachedFile );
-					String img = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(byte_array);
-					images.add(new Image(img));
-					//images.add(new Image(attachedFile.getAbsolutePath()));
-				}catch (Exception e){
+			try {
+				FileInfo fileInfo = repository.findById(attachmentId).get();
+				byte[] byteArray = fileInfo.getData();
+				ByteArrayInputStream input_stream = new ByteArrayInputStream(byteArray);
+				BufferedImage final_buffered_image = ImageIO.read(input_stream);
+				File attachedFile = new File(attachmentId + ".jpg");
+				ImageIO.write(final_buffered_image, "jpg", attachedFile);
 
-				}
+				// init array with file length
+				byte[] bytesArray = new byte[(int) attachedFile.length()];
+
+				FileInputStream fis = new FileInputStream(attachedFile);
+				fis.read(bytesArray); // read file into bytes[]
+				fis.close();
+
+				String img = "data:image/jpg;base64," + Base64.getEncoder().encodeToString(bytesArray);
+				images.add(new Image(img));
+			
+			} catch (Exception e) {
+
+			}
 			});
 			model.put("images", images);
 
