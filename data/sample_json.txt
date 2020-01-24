@@ -1,10 +1,8 @@
 {
 	"from":"erolkureli@gmail.com",
 	"to":"erolkureli@gmail.com",
-	"replyTo":"",
-	"subject":"deneme",
-	"htmlBody":"Mail from Green Wallet",
-	"attachments":["b7f61a4d-7d45-3510-b65f-c8daa239d6c1",
-	"d41d8cd9-8f00-3204-a980-0998ecf8427e"]
-	
+	"replyTo":"erolkureli@gmail.com",
+	"subject":"Test",
+	"htmlBody":"Test Email from Green Wallet",
+	"attachments":["ffd8ffe0-0010-4a46-4946-000101000001"]
 }

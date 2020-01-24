@@ -5,10 +5,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
@@ -21,7 +18,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import freemarker.template.Configuration;
+import uk.co.greenwallet.model.FileInfo;
 import uk.co.greenwallet.model.InternalEmail;
+import uk.co.greenwallet.repository.AttachmentRepository;
 import uk.co.greenwallet.rest.service.MailServiceImpl;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -32,6 +31,9 @@ public class MailServiceImplTest {
 
 	@Mock
 	private Configuration fmConfiguration;
+
+	@Mock
+	private AttachmentRepository repository;
 
 	@InjectMocks
 	private MailServiceImpl service;
@@ -50,7 +52,11 @@ public class MailServiceImplTest {
 		Session session = Session.getDefaultInstance(props);
 		final MimeMessage msg = new MimeMessage(session);
 
+		FileInfo fileInfo = new FileInfo();
+		Optional<FileInfo> optionalFileInfo = Optional.of(fileInfo);
+
 		when(mailSender.createMimeMessage()).thenReturn(msg);
+		when(repository.findById(any())).thenReturn(optionalFileInfo);
 
 		service.sendEmail(mail);
 

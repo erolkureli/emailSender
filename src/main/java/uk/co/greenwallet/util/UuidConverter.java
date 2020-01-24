@@ -4,10 +4,11 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 public class UuidConverter {
-	public static byte[] getByteArrayFormUuid(UUID uuid) {
-		ByteBuffer buffer = ByteBuffer.wrap(new byte[16]);
-		buffer.putLong(uuid.getMostSignificantBits());
-		buffer.putLong(uuid.getLeastSignificantBits());
-		return buffer.array();
+	public static UUID getGuidFromByteArray(byte[] bytes) {
+		ByteBuffer bb = ByteBuffer.wrap(bytes);
+		long high = bb.getLong();
+		long low = bb.getLong();
+		UUID uuid = new UUID(high, low);
+		return uuid;
 	}
 }

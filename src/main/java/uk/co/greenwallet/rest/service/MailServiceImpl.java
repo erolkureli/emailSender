@@ -1,13 +1,14 @@
 package uk.co.greenwallet.rest.service;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,16 +20,19 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import uk.co.greenwallet.model.FileInfo;
 import uk.co.greenwallet.model.Image;
 import uk.co.greenwallet.model.InternalEmail;
-import uk.co.greenwallet.util.FileProducer;
-import uk.co.greenwallet.util.UuidConverter;
+import uk.co.greenwallet.repository.AttachmentRepository;
 
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
 
 	@Autowired
 	JavaMailSender mailSender;
+
+	@Autowired
+	private AttachmentRepository repository;
 
 	@Autowired
 	Configuration fmConfiguration;
@@ -41,23 +45,23 @@ public class MailServiceImpl implements IMailService {
 
 		try {
 			Map<String, Object> model = new HashMap<String, Object>();
-			model.put("to", mail.getTo());
-			model.put("from", mail.getFrom());
 			model.put("body", mail.getHtmlBody());
 
 			List<Image> images = new ArrayList<Image>();
-			mail.getAttachments().stream().forEach((attachment) -> {
+			mail.getAttachments().stream().forEach((attachmentId) -> {
+
 				try {
-					File file = new File(attachment + ".jpg");
-					byte[] imgAsByteArray = UuidConverter.getByteArrayFormUuid(attachment);
+					FileInfo fileInfo = repository.findById(attachmentId).get();
+					byte [] byte_array = fileInfo.getData();
+					ByteArrayInputStream input_stream= new ByteArrayInputStream(byte_array);
+					BufferedImage final_buffered_image = ImageIO.read(input_stream);
+					File attachedFile = new File(attachmentId + ".jpg");
+					ImageIO.write(final_buffered_image , "jpg", attachedFile );
+					String img = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(byte_array);
+					images.add(new Image(img));
+					//images.add(new Image(attachedFile.getAbsolutePath()));
+				}catch (Exception e){
 
-					OutputStream os = new FileOutputStream(file);
-					os.write(imgAsByteArray);
-
-					FileProducer.printContent(file);
-					os.close();
-					images.add(new Image(file.getAbsolutePath()));
-				} catch (Exception e) {
 				}
 			});
 			model.put("images", images);
@@ -70,7 +74,7 @@ public class MailServiceImpl implements IMailService {
 			String createdHtmlBodyByTemplate = geContentFromTemplate(model);
 			mimeMessageHelper.setText(createdHtmlBodyByTemplate, true);
 
-			mailSender.send(mimeMessageHelper.getMimeMessage());
+ 			mailSender.send(mimeMessageHelper.getMimeMessage());
 		} catch (Exception e) {
 
 		}
