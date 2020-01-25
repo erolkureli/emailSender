@@ -5,7 +5,7 @@
     <tr>
     <td>
       <#list images as image>
-      <img src="${image.path}" alt="Image Not Found" style="display: block;" />
+      <img src="${image.path}" alt="Image Not Found" style="display:block;" />
       </#list>
     </td>
     </tr>
